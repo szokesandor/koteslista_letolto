@@ -1,0 +1,31 @@
+# munkanap athelyezesek gyujtoje
+# minden sor elott a '#' jelenti a megjegyzest
+#
+# amennyiben egy napot torolni kell az a kovetkezo szerint kell:
+# 2015-12-11:-
+#
+# uj datum hozzadasa:
+# 2015-12-12:+
+
+# marc 15
+2017-03-15:-
+
+#husvet
+#2017-04-14:-
+2017-04-17:-
+
+#majus 1
+2017-05-01:-
+
+#punkosd
+2017-06-05:-
+
+# okt 23
+2017-10-23:-
+
+# mindszent
+2017-11-01:-
+
+# karacsony
+2017-12-25:-
+2017-12-26:-
