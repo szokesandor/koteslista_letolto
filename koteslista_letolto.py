@@ -2,11 +2,19 @@
 # url: http://www.portfolio.hu/tozsde/koteslista-hist.tdp
 # 2017.01.18 - Szoke Sandor
 #
+# javitasok:
+# 2017.03.31 - Szoke Sandor
+#            - timestamp most mar oraallitas utan is helyes lesz 
+# 2017.03.23 - Szoke Sandor
+#            - bealitasok kulon mappaba mozgatasa
+# 2017.03.19 - Szoke Sandor
+#            - letrehozza a mappat a koteslistahoz
+#
 # Mukodes:
 # - letrehoz egy tombot az elozo 7 nap datumabol (mind kell mert lehet, hogy a hetvege munkanap volt)
 # - betolti az elozo letoltott datumokat
-# - betolti az leteres file-t
-# - osszfesuli az elozo harmat
+# - betolti az elteres file-t (munkanapathelyezesek miatt lehet erdekes)
+# - osszefesuli az elozo harmat
 # - a maradekot letolti
 # - frissiti letoltott fajlok listajat es elmenti azt
 
@@ -23,6 +31,7 @@ from urllib2 import URLError
 
 import os
 import re
+import pytz
 from datetime import datetime, date, time, timedelta
 from time import sleep
 
@@ -78,7 +87,8 @@ def FileDownload(dt,mappa):
   else:
     print ("not available for download")
     exitcode = 1
-
+  # print downloaded file
+  print mappa + "/" + filename[0]
 #  with open('headers', 'w') as f:
 #    print(headers, file=f)
 #
@@ -88,14 +98,11 @@ def FileDownload(dt,mappa):
 # visszaadja a Unix Timestamp-et szovegkent
 # 
 def Timestamp(dt):
-#  dt = datetime(2017, 1, 14)
   dt = datetime.combine(dt,time(0,0))
-  print ("toUnix:" + str(dt))
-  print (str(type(dt)))
-  dt = dt + timedelta(hours=-1)
-  
-  print (dt)
-  timestamp = (dt - datetime(1970, 1, 1)).total_seconds()
+  dt=pytz.timezone('Europe/Budapest').localize(dt)
+#  print ("toUnix:" + str(dt))
+  epoch = pytz.utc.localize(datetime(1970,1,1))
+  timestamp = (dt - epoch).total_seconds()
   return int(timestamp)
 #----
 # az elso listarol leszedi azokat akik rajta vannak a masodikon
