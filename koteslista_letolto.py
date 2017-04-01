@@ -3,6 +3,8 @@
 # 2017.01.18 - Szoke Sandor
 #
 # javitasok:
+# 2017.04.01 - Szoke Sandor
+#            - print szintakszis javítása
 # 2017.03.31 - Szoke Sandor
 #            - timestamp most mar oraallitas utan is helyes lesz 
 # 2017.03.23 - Szoke Sandor
@@ -88,7 +90,7 @@ def FileDownload(dt,mappa):
     print ("not available for download")
     exitcode = 1
   # print downloaded file
-  print mappa + "/" + filename[0]
+  print (mappa + "/" + filename[0])
 #  with open('headers', 'w') as f:
 #    print(headers, file=f)
 #
