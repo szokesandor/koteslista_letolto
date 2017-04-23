@@ -3,8 +3,10 @@
 # 2017.01.18 - Szoke Sandor
 #
 # javitasok:
+# 2017.04.23 - Szoke Sandor
+#            - a letoltott csv fajlokat gzip-el tomoritve menti le 
 # 2017.04.01 - Szoke Sandor
-#            - print szintakszis javítása
+#            - print szintakszis javitasa
 # 2017.03.31 - Szoke Sandor
 #            - timestamp most mar oraallitas utan is helyes lesz 
 # 2017.03.23 - Szoke Sandor
@@ -36,6 +38,9 @@ import re
 import pytz
 from datetime import datetime, date, time, timedelta
 from time import sleep
+import gzip
+import StringIO
+
 
 #----
 #----
@@ -84,13 +89,19 @@ def FileDownload(dt,mappa):
   if (len(content_disposition) > 0):
     filename = re.findall(r'"([^"]*)"',headers.getheaders("Content-Disposition")[0])
     #    print("filename: " + filename[0])
-    with open(mappa + "/" + filename[0], 'wb') as f:
-      print(content, file=f)
+    gzipr = StringIO.StringIO()
+    tmpf = gzip.GzipFile(filename=filename[0], mode='wb', fileobj=gzipr,)
+    tmpf.write(content)
+    tmpf.close()
+    gzipr.seek(0)
+    f = open(mappa + "/" + filename[0] + ".gz", 'wb')
+    f.write(gzipr.read())
+    f.close()
   else:
     print ("not available for download")
     exitcode = 1
   # print downloaded file
-  print (mappa + "/" + filename[0])
+  print (mappa + "/" + filename[0]+".gz")
 #  with open('headers', 'w') as f:
 #    print(headers, file=f)
 #

@@ -1,7 +1,9 @@
 ﻿# koteslista_letolto.py
 
 ## leírás
-Egy egyszerű script ami a http://portfolio.hu oldalról letölti az elmult heti kötéslistákat feltéve, hogy egy héttel ezelőtt futott
+A http://portfolio.hu oldalon a koteslistak 1 hétre visszamenően érhetőek el. Ez a script segít letölteni a koteslistákat. 
+Ha hetente el tudjuk indítani kétszer, vagy be tudjuk rakni utemezőbe akkor magától folyamatosan le fogja tölteni
+az aktuális fájlokat. A fájlokat Gzip-el tömörítve tárolja, hogy ne foglaljanak annyi helyet (kb. 74% helymegtakarítás). 
 
 ## beállítás fájlok
 * letoltott - ez tartalmazza a már letöltött koteslista fájlok dátumait
