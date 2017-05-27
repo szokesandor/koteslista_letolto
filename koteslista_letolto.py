@@ -3,6 +3,8 @@
 # 2017.01.18 - Szoke Sandor
 #
 # javitasok:
+# 2017.05.27 - Szoke Sandor
+#            - letoltott fajl feltoltese azonnal szerverre
 # 2017.04.23 - Szoke Sandor
 #            - a letoltott csv fajlokat gzip-el tomoritve menti le 
 # 2017.04.01 - Szoke Sandor
@@ -40,6 +42,13 @@ from datetime import datetime, date, time, timedelta
 from time import sleep
 import gzip
 import StringIO
+import requests
+import ConfigParser
+
+configfile = 'etc/koteslista_letolto.conf' 
+config = ConfigParser.ConfigParser()
+config.read(configfile)
+url = config.get('server', 'upload_url', 'http://localhost/tozsde/upload.php')
 
 
 #----
@@ -97,6 +106,7 @@ def FileDownload(dt,mappa):
     f = open(mappa + "/" + filename[0] + ".gz", 'wb')
     f.write(gzipr.read())
     f.close()
+    Feltotles(mappa + "/" + filename[0] + ".gz")
   else:
     print ("not available for download")
     exitcode = 1
@@ -106,6 +116,13 @@ def FileDownload(dt,mappa):
 #    print(headers, file=f)
 #
   return exitcode
+#--------------------------------------------------
+#----
+# fajl feltoltese szerverre
+def Feltotles(fajl):
+  files = {'userfile': open(fajl, 'rb')}
+  r = requests.post(url, files=files)
+  print (r.text)
 #--------------------------------------------------
 #----
 # visszaadja a Unix Timestamp-et szovegkent
@@ -218,7 +235,9 @@ if __name__ == '__main__' :
   LETOLTOTT="./etc/letoltott.txt"
   letoltve = LetoltottNapokBetoltese(LETOLTOTT)
   print ("\nLetoltve:")
-  for i in range(len(letoltve)):
+
+# csak az utolso 5 nap listazasa
+  for i in range(-5,0):
     print (letoltve[i])
 
   letolteni = LetolteniDatumok(modositottdates,letoltve)
