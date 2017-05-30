@@ -5,8 +5,16 @@ import os
 import requests
 import ConfigParser
 
-config = ConfigParser.RawConfigParser()
-config.read('koteslista_letolto.conf')
+configfile = 'etc/koteslista_letolto.conf' 
+config = ConfigParser.ConfigParser()
+if not os.path.isfile(configfile):
+  cfgfile = open(configfile, 'w')
+  config.add_section('server')
+  config.set('server', 'upload_url', 'http://localhost/tozsde/upload.php')
+  config.write(cfgfile)
+  cfgfile.close()
+
+config.read(configfile)
 url = config.get('server', 'upload_url', 'http://localhost/tozsde/upload.php')
 
 for dirname, subdirs, files in os.walk("koteslistak"):
