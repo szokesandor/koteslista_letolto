@@ -3,6 +3,8 @@
 # 2017.01.18 - Szoke Sandor
 #
 # javitasok:
+# 2017.06.11 - Szoke Sandor
+#            - beallitasok fajl betoltesenek hozzadasa
 # 2017.05.27 - Szoke Sandor
 #            - letoltott fajl feltoltese azonnal szerverre
 # 2017.04.23 - Szoke Sandor
@@ -22,11 +24,12 @@
 # - betolti az elteres file-t (munkanapathelyezesek miatt lehet erdekes)
 # - osszefesuli az elozo harmat
 # - a maradekot letolti
-# - frissiti letoltott fajlok listajat es elmenti azt
-
+# - frissiti letoltott fajlok listajat es elmenti a listat
+# - feltolti a letoltott fajlokat a megadott szerverre
+#
+#
 # letoltesi link:
 # href="http://www.portfolio.hu/tozsde/koteslista-hist.tdp?datum=1489446000&amp;xls=1"
-# nehany adat:
 # 
 from __future__ import print_function
 
@@ -36,6 +39,7 @@ import urllib2
 from urllib2 import URLError
 
 import os
+import sys
 import re
 import pytz
 from datetime import datetime, date, time, timedelta
@@ -44,13 +48,20 @@ import gzip
 import StringIO
 import requests
 import ConfigParser
+import inspect
 
-configfile = 'etc/koteslista_letolto.conf' 
-config = ConfigParser.ConfigParser()
-config.read(configfile)
-url = config.get('server', 'upload_url', 'http://localhost/tozsde/upload.php')
+# use this if you want to include modules from a subfolder
+cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"libs")))
+if cmd_subfolder not in sys.path:
+  sys.path.insert(0, cmd_subfolder)
+#print (sys.path)
+from koteslista_beallitasok import beallitasokfajl_megnyitasa, beallitas_ertek
 
+beallitasokfajl_megnyitasa('etc/koteslista_letolto.conf' )
+url = beallitas_ertek('server', 'upload_url')
 
+#print ("URL: ",url)
+#sys.exit(-1)
 #----
 #----
 # fajl letoltese adott mappaba
@@ -255,7 +266,7 @@ if __name__ == '__main__' :
     if (status == 0):
       # hozzadas letoltve listahoz
       letoltve.append(letolteni[i])
-    if (ilen > 1):
+    if (ilen > 1) && (i <> ilen):
       sleep(10)
   # letoltott adtumok fajl kiirasa
   f = open(LETOLTOTT, 'w')

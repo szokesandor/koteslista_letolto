@@ -1,13 +1,14 @@
-# upload *.csv.gz files in a folder (recursively)
-# 2017.05.27 - Szoke Sandor
+# import *.csv.gz files on server (get file list&iterate)
+# 2017.06.05 - Szoke Sandor
 #
 # javitasok:
 # 2017.06.11 - Szoke Sandor
 #            - beallitasok fajl betoltesenek hozzadasa
-#
+
 import os
 import requests
 import ConfigParser
+import json
 import inspect
 
 # use this if you want to include modules from a subfolder
@@ -18,12 +19,13 @@ if cmd_subfolder not in sys.path:
 from koteslista_beallitasok import beallitasokfajl_megnyitasa, beallitas_ertek
 
 beallitasokfajl_megnyitasa('etc/koteslista_letolto.conf' )
-url = beallitas_ertek('server', 'upload_url')
+url_list = beallitas_ertek('server', 'list_url')
+url_import = beallitas_ertek('server', 'import_url')
 
-for dirname, subdirs, files in os.walk("koteslistak"):
-  for file in files:
-    if (".csv.gz" or ".CSV.GZ") in file:  
-      sourcefile = os.path.join(dirname, file)
-      files = {'userfile': open(sourcefile, 'rb')}
-      r = requests.post(url, files=files)
-      print sourcefile,"-> ",r.text
+r = requests.get(url_list)
+j = r.json()
+for file in j:
+  payload = {'f': file["checksum"]}
+  r = requests.get(url_import, params=payload)
+#  print "-> ",file["index"],":", file["name"], "checksum:", file["checksum"] 
+  print "-> ",r.text
