@@ -1,8 +1,11 @@
 # koteslista letolto portfoli.hu-rol
 # url: http://www.portfolio.hu/tozsde/koteslista-hist.tdp
-# 2017.01.18 - Szoke Sandor
+# 2017.01.18 - Szoke Sandor <mail@szokesandor.hu>
 #
 # javitasok:
+# 2017.06.15 - Szoke Sandor
+#            - for hiba javitasa 
+#            - autoupload beallitas ertek kezelese, valamint autoimport beallitas hozzadasa
 # 2017.06.11 - Szoke Sandor
 #            - beallitasok fajl betoltesenek hozzadasa
 # 2017.05.27 - Szoke Sandor
@@ -59,6 +62,8 @@ from koteslista_beallitasok import beallitasokfajl_megnyitasa, beallitas_ertek
 
 beallitasokfajl_megnyitasa('etc/koteslista_letolto.conf' )
 url = beallitas_ertek('server', 'upload_url')
+autoimport = beallitas_ertek('server', 'autoimport')
+autoupload = beallitas_ertek('server', 'autoupload')
 
 #print ("URL: ",url)
 #sys.exit(-1)
@@ -117,7 +122,8 @@ def FileDownload(dt,mappa):
     f = open(mappa + "/" + filename[0] + ".gz", 'wb')
     f.write(gzipr.read())
     f.close()
-    Feltotles(mappa + "/" + filename[0] + ".gz")
+    if (autoupload == "yes"):
+      Feltotles(mappa + "/" + filename[0] + ".gz")
   else:
     print ("not available for download")
     exitcode = 1
@@ -266,7 +272,7 @@ if __name__ == '__main__' :
     if (status == 0):
       # hozzadas letoltve listahoz
       letoltve.append(letolteni[i])
-    if (ilen > 1) && (i <> ilen):
+    if ((ilen > 1) and (i <> ilen)):
       sleep(10)
   # letoltott adtumok fajl kiirasa
   f = open(LETOLTOTT, 'w')
