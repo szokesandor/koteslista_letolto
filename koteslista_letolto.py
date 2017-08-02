@@ -5,6 +5,7 @@
 # javitasok:
 # 2017.08.02 - Szoke Sandor
 #            - naplozas hozzaadasa
+#            - importalas hozzaadasa
 # 2017.06.15 - Szoke Sandor
 #            - for hiba javitasa 
 #            - autoupload beallitas ertek kezelese, valamint autoimport beallitas hozzadasa
