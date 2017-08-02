@@ -3,6 +3,8 @@
 # 2017.01.18 - Szoke Sandor <mail@szokesandor.hu>
 #
 # javitasok:
+# 2017.08.02 - Szoke Sandor
+#            - naplozas hozzaadasa
 # 2017.06.15 - Szoke Sandor
 #            - for hiba javitasa 
 #            - autoupload beallitas ertek kezelese, valamint autoimport beallitas hozzadasa
@@ -52,6 +54,7 @@ import StringIO
 import requests
 import ConfigParser
 import inspect
+import logging
 
 # use this if you want to include modules from a subfolder
 cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"libs")))
@@ -60,10 +63,15 @@ if cmd_subfolder not in sys.path:
 #print (sys.path)
 from koteslista_beallitasok import beallitasokfajl_megnyitasa, beallitas_ertek
 
+LogFolder = "./logs/"
+
 beallitasokfajl_megnyitasa('etc/koteslista_letolto.conf' )
 url = beallitas_ertek('server', 'upload_url')
-autoimport = beallitas_ertek('server', 'autoimport')
 autoupload = beallitas_ertek('server', 'autoupload')
+
+autoimport = beallitas_ertek('server', 'autoimport')
+url_list   = beallitas_ertek('server', 'list_url')
+url_import = beallitas_ertek('server', 'import_url')
 
 #print ("URL: ",url)
 #sys.exit(-1)
@@ -100,16 +108,18 @@ def FileDownload(dt,mappa):
   except URLError as e:
     if hasattr(e, 'reason'):
         exitcode = 1
-        print ('We failed to reach a server. Reason: ', e.reason)
+        logging.error('Szerver elerese sikeretelen. Oka: ' + str(e.reason) + " @ " + dt.strftime('%Y-%m-%d') + " " +url+"?"+ data)
+#        print ('We failed to reach a server. Reason: ', e.reason)
         return exitcode
     elif hasattr(e, 'code'):
         exitcode = 1
-        print ('The server couldn\'t fulfill the request. Error code: ', e.code)
+        logging.error('A szerver nem tudja teljesiteni a kerest. Hibakod: ' + str(e.code) + " @ " + dt.strftime('%Y-%m-%d') + " " + url+"?"+ data)
+#        print ('The server couldn\'t fulfill the request. Error code: ', e.code)
         return exitcode
   else:
     exitcode = 0
-  #print(headers)
-  #print(headers.getheaders("Content-Disposition"))
+#  print(headers)
+#  print(headers.getheaders("Content-Disposition"))
   content_disposition=headers.getheaders("Content-Disposition")
   if (len(content_disposition) > 0):
     filename = re.findall(r'"([^"]*)"',headers.getheaders("Content-Disposition")[0])
@@ -122,24 +132,22 @@ def FileDownload(dt,mappa):
     f = open(mappa + "/" + filename[0] + ".gz", 'wb')
     f.write(gzipr.read())
     f.close()
+    logging.info("Letoltve: " + filename[0]+".gz")
     if (autoupload == "yes"):
-      Feltotles(mappa + "/" + filename[0] + ".gz")
+      Feltoltes(mappa + "/" + filename[0] + ".gz")
   else:
-    print ("not available for download")
+    logging.info("Letoltesre nem elerheto" + dt.strftime('%Y-%m-%d'))
+#    print ("Letoltesre nem elerheto: " + dt.strftime('%Y-%m-%d'))
     exitcode = 1
-  # print downloaded file
-  print (mappa + "/" + filename[0]+".gz")
-#  with open('headers', 'w') as f:
-#    print(headers, file=f)
-#
   return exitcode
 #--------------------------------------------------
 #----
 # fajl feltoltese szerverre
-def Feltotles(fajl):
+def Feltoltes(fajl):
   files = {'userfile': open(fajl, 'rb')}
   r = requests.post(url, files=files)
-  print (r.text)
+  logging.info("Feltoltve: " + r.text)
+#  print (r.text)
 #--------------------------------------------------
 #----
 # visszaadja a Unix Timestamp-et szovegkent
@@ -190,7 +198,8 @@ def osszefesul(aktualis, modosito):
     if (str(datum) in modosito.keys()):
       allapot=modosito[str(datum)]
       if (allapot == "-"):
-        print ("torolve:"+ str(datum)+ str(allapot))
+#        print ("torolve:"+ str(datum)+ str(allapot))
+        logging.debug("Torolve: "+ str(datum)+ str(allapot))
         pass
     else :
       ujlista.append(datum)
@@ -227,18 +236,36 @@ def ElozoNapok(elozonapokszama):
     d = dstart + timedelta(days=day)
     if (d.isoweekday() < 6):  # csak a munkanapok kellenek
       datumlista.append(d)
-
   return datumlista
-  
 #------------------------------------------------------------------------------------
 # kiirja az elozo 7 nap datumat
 
 if __name__ == '__main__' :
-
-  lista = ElozoNapok(7)
-  print("Elozo napok:")
-  for i in range(len(lista)):
-    print (lista[i])
+# naplozas beallitasa
+  try:
+    if not os.path.exists(LogFolder):
+      raise Exception('ERROR: Folder is not exists')
+    if os.path.isfile(LogFolder):
+      raise Exception('ERROR: Folder to store logs is a file!')
+  except Exception as e:
+    print(e)
+    sys.exit(-1)
+  logFile = "koteslista_letolto_@_" + datetime.now().strftime('%Y%m%d_%H%M%S') + ".log"
+  logging.basicConfig(filename=os.path.join(LogFolder, logFile),format='%(asctime)s %(message)s', level=logging.INFO)
+#  logging.getLogger('').setLevel(logging.DEBUG) ## only if needed
+  logging.getLogger("requests").setLevel(logging.WARNING)
+  console = logging.StreamHandler()
+  console.setLevel(logging.INFO)
+  formatter = logging.Formatter('%(message)s')
+  console.setFormatter(formatter)
+  logging.getLogger('').addHandler(console)
+###
+  lista = ElozoNapok(6)
+  date_strings = [dt.strftime('%Y-%m-%d') for dt in lista]
+  logging.debug("Elozo napok: "+";".join(date_strings))
+#  print("Elozo napok:")
+#  for i in range(len(lista)):
+#    print (lista[i])
 
 # munkanapathelyezesek fajl
   MODFILE="./etc/modfile.txt"
@@ -251,16 +278,18 @@ if __name__ == '__main__' :
 # utoljara letoltott datumok listaja
   LETOLTOTT="./etc/letoltott.txt"
   letoltve = LetoltottNapokBetoltese(LETOLTOTT)
-  print ("\nLetoltve:")
-
+  logging.info("Letoltve:    "+";".join(letoltve[-5:]))
+#  print ("\nLetoltve:")
 # csak az utolso 5 nap listazasa
-  for i in range(-5,0):
-    print (letoltve[i])
+#  for i in range(-5,0):
+#    print (letoltve[i])
 
   letolteni = LetolteniDatumok(modositottdates,letoltve)
-  print ("\nLetolteni: ")
-  for i in range(len(letolteni)):
-    print (letolteni[i])
+  date_strings = [dt.strftime('%Y-%m-%d') for dt in letolteni]
+  logging.info("Letoltendok: "+";".join(date_strings))
+#  print ("\nLetolteni: ")
+#  for i in range(len(letolteni)):
+#    print (letolteni[i])
 
   # fajlok letoltese egyesevel
   MAPPA="koteslistak"
@@ -272,12 +301,22 @@ if __name__ == '__main__' :
     if (status == 0):
       # hozzadas letoltve listahoz
       letoltve.append(letolteni[i])
-    if ((ilen > 1) and (i <> ilen)):
+    if ((ilen > 1) and (i < (ilen-1))):
       sleep(10)
-  # letoltott adtumok fajl kiirasa
+  # letoltott datumok fajl kiirasa
   f = open(LETOLTOTT, 'w')
   for item in letoltve:
     f.write("%s\n" % item)
   f.close()
-       
-   
+  if (autoimport == "yes"):
+#      Importalas("Letoltve: " + mappa + "/" + filename[0] + ".gz")
+    r = requests.get(url_list)
+    j = r.json()
+    file_strings = [i["name"] for i in j]
+    logging.info("Importalando fajlok: "+";".join(file_strings))
+    for file in j:
+      payload = {'f': file["checksum"]}
+      r = requests.get(url_import, params=payload)
+#      print "-> ",file["index"],":", file["name"], "checksum:", file["checksum"] 
+#      print "-> ",r.text
+      logging.info("-> " + r.text)

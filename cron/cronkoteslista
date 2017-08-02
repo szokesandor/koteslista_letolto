@@ -1,0 +1,39 @@
+#!/bin/sh
+# /etc/cron.daily/cronkoteslista: koteslista letolto,tomorito, feltolto, importalo script
+# Written by Szoke Sandor <mail@szokesandor.hu>
+# 2017.06.16
+
+#. /etc/default/bsdmainutils
+#[ x$RUN_DAILY = xtrue ] || exit 0
+
+FOLDER=/mnt/sda1/portfolio
+CRON=/etc/cron.daily
+
+run()
+{
+ # drivnak csatolva kell lennie
+ [ ! -d /mnt/sda1/portfolio/cron ] && exit 0
+ [ ! -x /usr/bin/python ] && exit 0
+ if [ ! -x /mnt/sda1/portfolio/koteslista_letolto.py ]; then
+   echo "A koteslistaletolto parancsfile nincs telepitve!"
+   exit 1
+ fi
+}
+
+case "$1" in
+  "")
+        run
+        ;;
+  install)
+        cp  -f $FOLDER/cron/cronkoteslista $CRON
+        echo "cronkoteslista installed"
+        ;;
+  uninstall|remove)
+        rm -f /etc/cron.daily/cronkoteslista
+        echo "cronkoteslista uninstalled"
+        ;;
+  *)
+        echo "Usage: $0 [install|remove]" >&2
+        exit 3
+        ;;
+esac
