@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+######
 # gzip csv files in a folder (recursively)
 # 2017.04.23 - Szoke Sandor
 

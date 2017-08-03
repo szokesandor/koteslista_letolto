@@ -1,8 +1,14 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+######
 # koteslista letolto portfoli.hu-rol
 # url: http://www.portfolio.hu/tozsde/koteslista-hist.tdp
 # 2017.01.18 - Szoke Sandor <mail@szokesandor.hu>
 #
 # javitasok:
+# 2017.08.03 - Szőke Sándor
+#            - betű kódolás, hozzáadása
+#            - urllib3 naplózás csökkentése 
 # 2017.08.02 - Szoke Sandor
 #            - naplozas hozzaadasa
 #            - importalas hozzaadasa
@@ -255,6 +261,7 @@ if __name__ == '__main__' :
   logging.basicConfig(filename=os.path.join(LogFolder, logFile),format='%(asctime)s %(message)s', level=logging.INFO)
 #  logging.getLogger('').setLevel(logging.DEBUG) ## only if needed
   logging.getLogger("requests").setLevel(logging.WARNING)
+  logging.getLogger("urllib3").setLevel(logging.WARNING)
   console = logging.StreamHandler()
   console.setLevel(logging.INFO)
   formatter = logging.Formatter('%(message)s')

@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+######
 # import *.csv.gz files on server (get file list&iterate)
 # 2017.06.05 - Szoke Sandor
 #
@@ -6,6 +9,7 @@
 #            - beallitasok fajl betoltesenek hozzadasa
 
 import os
+import sys
 import requests
 import ConfigParser
 import json

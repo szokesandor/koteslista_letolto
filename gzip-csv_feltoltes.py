@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+######
 # upload *.csv.gz files in a folder (recursively)
 # 2017.05.27 - Szoke Sandor
 #
@@ -6,6 +9,7 @@
 #            - beallitasok fajl betoltesenek hozzadasa
 #
 import os
+import sys
 import requests
 import ConfigParser
 import inspect
