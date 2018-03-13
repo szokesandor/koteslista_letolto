@@ -6,25 +6,27 @@
 # 2017.01.18 - Szoke Sandor <mail@szokesandor.hu>
 #
 # javitasok:
+# 2018.03.13 - Szőke Sándor
+#            - munkanap áthelyezéskor már a szombati munkanapot is letöltődik 
 # 2017.08.03 - Szőke Sándor
 #            - betű kódolás, hozzáadása
-#            - urllib3 naplózás csökkentése 
+#            - urllib3 naplózás csökkentése
 # 2017.08.02 - Szoke Sandor
 #            - naplozas hozzaadasa
 #            - importalas hozzaadasa
 # 2017.06.15 - Szoke Sandor
-#            - for hiba javitasa 
+#            - for hiba javitasa
 #            - autoupload beallitas ertek kezelese, valamint autoimport beallitas hozzadasa
 # 2017.06.11 - Szoke Sandor
 #            - beallitasok fajl betoltesenek hozzadasa
 # 2017.05.27 - Szoke Sandor
 #            - letoltott fajl feltoltese azonnal szerverre
 # 2017.04.23 - Szoke Sandor
-#            - a letoltott csv fajlokat gzip-el tomoritve menti le 
+#            - a letoltott csv fajlokat gzip-el tomoritve menti le
 # 2017.04.01 - Szoke Sandor
 #            - print szintakszis javitasa
 # 2017.03.31 - Szoke Sandor
-#            - timestamp most mar oraallitas utan is helyes lesz 
+#            - timestamp most mar oraallitas utan is helyes lesz
 # 2017.03.23 - Szoke Sandor
 #            - bealitasok kulon mappaba mozgatasa
 # 2017.03.19 - Szoke Sandor
@@ -42,7 +44,7 @@
 #
 # letoltesi link:
 # href="http://www.portfolio.hu/tozsde/koteslista-hist.tdp?datum=1489446000&amp;xls=1"
-# 
+#
 from __future__ import print_function
 
 import urllib
@@ -100,7 +102,7 @@ def FileDownload(dt,mappa):
   #url = "http://localhost/download/file1.php"
   url = "http://www.portfolio.hu/tozsde/koteslista-hist.tdp"
   user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0'
-  request_headers = {'User-Agent': user_agent, 
+  request_headers = {'User-Agent': user_agent,
                      'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                      "Accept-Language": 'hu-HU,hu;q=0.8,en-US;q=0.5,en;q=0.3'}
   values = {'xls': '1',
@@ -158,7 +160,7 @@ def Feltoltes(fajl):
 #--------------------------------------------------
 #----
 # visszaadja a Unix Timestamp-et szovegkent
-# 
+#
 def Timestamp(dt):
   dt = datetime.combine(dt,time(0,0))
   dt=pytz.timezone('Europe/Budapest').localize(dt)
@@ -186,30 +188,30 @@ def LetoltottNapokBetoltese(letoltottfajl):
 
     lines = file.splitlines()
     for line in lines:
-      line = line.strip()                 
+      line = line.strip()
       datumlista.append(line)
   return datumlista
 #----
-# a ket listat modositja, hogy az aktualisban a munkanap athelyezesek is benne legyenek
-# jelenleg csak a munkaszuneti napokat ertelmezi
-def osszefesul(aktualis, modosito):
+# munkaszüneti napok módosítása
+def munkaszunetinapok_kezelese(aktualis,modosito):
   ujlista=[]
-# 2017-ben nincs szombati munkanap!  
-#  elsonap = aktualis[0]
-#  for datum in aktualis:
-#    if (elsonap > datum):
-#      elsonap = datum
-#  print "2",elsonap, "fesules start"
-#  print modosito
   for datum in aktualis:
-    if (str(datum) in modosito.keys()):
+    if (str(datum) in modosito.keys()): # hétvége szerepel a listában
       allapot=modosito[str(datum)]
-      if (allapot == "-"):
-#        print ("torolve:"+ str(datum)+ str(allapot))
-        logging.debug("Torolve: "+ str(datum)+ str(allapot))
-        pass
-    else :
-      ujlista.append(datum)
+      if (allapot == "+"):              # és munkanap
+        ujlista.append(datum)           # akkor letöltendő dátum
+  return ujlista
+#----
+# munkanapok módosítása
+def munkanapok_kezelese(aktualis,modosito):
+  ujlista=[]
+  for datum in aktualis:
+    if (str(datum) in modosito.keys()): # munkanap szerepel a listában
+      allapot=modosito[str(datum)]
+      if (allapot == "-"):              # és törölve
+        pass                            # nincs dolgunk
+    else:
+      ujlista.append(datum)             # különben letöltendő dátum
   return ujlista
 #----
 def MunkanapAthelyezesBetoltese(fajlnev):
@@ -234,16 +236,20 @@ def MunkanapAthelyezesBetoltese(fajlnev):
       datumlista[name[0]]=name[1]
   return datumlista
 #----
-# az elozo napok generalasa
+# az elozo napok generalasa: munkanapok és munkaszüneti napok
 def ElozoNapok(elozonapokszama):
 #  t = time(0,0,0)
   dstart = date.today() - timedelta(days=elozonapokszama)
-  datumlista = []
+#  dstart = date(2018,03,16) - timedelta(days=elozonapokszama)
+  munkanapoklista = []
+  munkaszunetinapoklista = []
   for day in range(elozonapokszama):
     d = dstart + timedelta(days=day)
     if (d.isoweekday() < 6):  # csak a munkanapok kellenek
-      datumlista.append(d)
-  return datumlista
+      munkanapoklista.append(d)
+    else:
+      munkaszunetinapoklista.append(d)
+  return munkanapoklista, munkaszunetinapoklista
 #------------------------------------------------------------------------------------
 # kiirja az elozo 7 nap datumat
 
@@ -268,9 +274,11 @@ if __name__ == '__main__' :
   console.setFormatter(formatter)
   logging.getLogger('').addHandler(console)
 ###
-  lista = ElozoNapok(6)
-  date_strings = [dt.strftime('%Y-%m-%d') for dt in lista]
-  logging.debug("Elozo napok: "+";".join(date_strings))
+  munkanapoklista,munkaszunetinapoklista = ElozoNapok(6)
+#  lista = ElozoNapok(6)
+  date_strings1 = [dt.strftime('%Y-%m-%d') for dt in munkanapoklista]
+  date_strings2 = [dt.strftime('%Y-%m-%d') for dt in munkaszunetinapoklista]
+  logging.debug("Elozo napok: "+";".join(date_strings1).join(date_strings2))
 #  print("Elozo napok:")
 #  for i in range(len(lista)):
 #    print (lista[i])
@@ -278,11 +286,15 @@ if __name__ == '__main__' :
 # munkanapathelyezesek fajl
   MODFILE="./etc/modfile.txt"
   moddates = MunkanapAthelyezesBetoltese(MODFILE)
-  modositottdates=osszefesul(lista,moddates)
-#  print "\nModositott napok:"
-#  for i in range(len(modositottdates)):
-#    print modositottdates[i]
-  
+
+  munkanapoklista = munkanapok_kezelese(munkanapoklista,moddates)
+  munkaszunetinapoklista = munkaszunetinapok_kezelese(munkaszunetinapoklista,moddates)
+  modositottdates = munkanapoklista + munkaszunetinapoklista
+
+  print ("\nModositott napok:")
+  for i in range(len(modositottdates)):
+    print (modositottdates[i])
+
 # utoljara letoltott datumok listaja
   LETOLTOTT="./etc/letoltott.txt"
   letoltve = LetoltottNapokBetoltese(LETOLTOTT)
@@ -298,7 +310,7 @@ if __name__ == '__main__' :
 #  print ("\nLetolteni: ")
 #  for i in range(len(letolteni)):
 #    print (letolteni[i])
-
+  #exit() ##FIXME: teszteléshez nem kell letöltés
   # fajlok letoltese egyesevel
   MAPPA="koteslistak"
   ilen = len(letolteni)
@@ -325,6 +337,6 @@ if __name__ == '__main__' :
     for file in j:
       payload = {'f': file["checksum"]}
       r = requests.get(url_import, params=payload)
-#      print "-> ",file["index"],":", file["name"], "checksum:", file["checksum"] 
+#      print "-> ",file["index"],":", file["name"], "checksum:", file["checksum"]
 #      print "-> ",r.text
       logging.info("-> " + r.text)
